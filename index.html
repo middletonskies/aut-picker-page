@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Drive Picker</title></head>
+<body>
+<script>
+  var F = null;
+  var pickerApiLoaded = false;
+
+  function parseFrag(hash) {
+    var p = {}; ((hash || '').replace(/^#/, '')).split('&').forEach(function(kv){
+      var i = kv.indexOf('='); if (i>0) p[decodeURIComponent(kv.slice(0,i))] = decodeURIComponent(kv.slice(i+1));
+    }); return p;
+  }
+
+  function loadFrag(callback) {
+    if (location.hash) return callback(parseFrag(location.hash));
+    if (window.google && google.script && google.script.url && google.script.url.getLocation) {
+      google.script.url.getLocation(function(loc) { callback(parseFrag(loc.hash)); });
+    } else {
+      callback(parseFrag(location.hash));
+    }
+  }
+
+  function redirect(qs){ location.href = F.redirect + '?slot=' + encodeURIComponent(F.slot) + qs; }
+  function fail(message){ document.body.textContent = message; }
+  function onApiLoad(){ gapi.load('picker', { callback: function() { pickerApiLoaded = true; maybeShow(); } }); }
+  function maybeShow(){ if (F && pickerApiLoaded) show(); }
+  function show(){
+    try {
+      var API_KEY = F.apiKey || "YOUR_PICKER_API_KEY";
+      var APP_ID  = F.appId || "175597960503";
+      if (!F.token) return fail('Picker error: missing token');
+      if (!API_KEY || API_KEY === "YOUR_PICKER_API_KEY") return fail('Picker error: missing apiKey');
+      if (!APP_ID) return fail('Picker error: missing appId');
+      var view = new google.picker.DocsView(google.picker.ViewId.DOCS)
+        .setMimeTypes(F.mime).setIncludeFolders(true)
+        .setSelectFolderEnabled(F.mime === 'application/vnd.google-apps.folder');
+      new google.picker.PickerBuilder()
+        .setAppId(APP_ID).setOAuthToken(F.token).setDeveloperKey(API_KEY).addView(view)
+        .setCallback(function(d){
+          var a = d[google.picker.Response.ACTION];
+          if (a === google.picker.Action.PICKED) redirect('&fileId=' + encodeURIComponent(d[google.picker.Response.DOCUMENTS][0].id));
+          else if (a === google.picker.Action.CANCEL) redirect('&cancelled=1');
+        }).build().setVisible(true);
+    } catch(e){ fail('Picker error: ' + e.message); }
+  }
+  loadFrag(function(frag) { F = frag; maybeShow(); });
+</script>
+<script async src="https://apis.google.com/js/api.js?onload=onApiLoad"></script>
+</body></html>
