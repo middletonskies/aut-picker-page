@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline' https://apis.google.com https://*.gstatic.com; connect-src https://*.googleapis.com https://*.google.com; frame-src https://*.google.com https://*.googleusercontent.com https://docs.google.com https://drive.google.com; img-src https: data:; style-src 'unsafe-inline' https:; base-uri 'none'; form-action 'none'">
 <title>Drive Picker</title></head>
 <body>
 <script>
@@ -28,7 +29,7 @@
   function show(){
     try {
       var API_KEY = F.apiKey || "YOUR_PICKER_API_KEY";
-      var APP_ID  = F.appId || "694221360891";
+      var APP_ID  = F.appId || "";
       if (!F.token) return fail('Picker error: missing token');
       if (!API_KEY || API_KEY === "YOUR_PICKER_API_KEY") return fail('Picker error: missing apiKey');
       if (!APP_ID) return fail('Picker error: missing appId');
